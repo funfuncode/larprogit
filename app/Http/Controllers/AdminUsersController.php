@@ -8,6 +8,8 @@ use App\Http\Requests\UsersRequest;
 use App\Http\Requests;
 use App\User;
 use App\Role;
+use App\Photo;
+use Carbon\Carbon;
 
 class AdminUsersController extends Controller
 {
@@ -69,7 +71,21 @@ public function store(UsersRequest $request)
          'is_active'=>$request->is_active
       ]);
 */
-   User::create($request->all());
+   $input = $request->all();
+
+   if($file = $request->file('file')){
+
+      $name = Carbon::now()->format('Y-m-d') . '_' . $file->getClientOriginalName();
+
+      $file->move('images', $name);
+
+      $photo = Photo::create(['file'=>$name]);
+
+      $input['photo_id'] = $photo->id;
+   }
+
+   User::create($input);
+
    return redirect('/admin/users');
 }
 
