@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Http\Requests\UsersRequest;
+use App\Http\Requests\UsersEditRequest;
 
 use App\Http\Requests;
 use App\User;
@@ -47,11 +48,11 @@ class AdminUsersController extends Controller
    foreach ($roles as $role) {
    $roles_form = array_push_assoc($roles_form, $role->id, $role->name);
 }
-   */
+*/
 
-   $roles = Role::lists('name', 'id')->all();
+$roles = Role::lists('name', 'id')->all();
 
-   return view('admin.users.create')->with('roles', $roles);
+return view('admin.users.create')->with('roles', $roles);
 }
 
 /**
@@ -62,31 +63,36 @@ class AdminUsersController extends Controller
 */
 public function store(UsersRequest $request)
 {
-/*
+   /*
    User::create([
-         'name'=>$request->name,
-         'email'=>$request->email,
-         'password'=>bcrypt($request->password),
-         'role_id'=>$request->role_id,
-         'is_active'=>$request->is_active
-      ]);
+   'name'=>$request->name,
+   'email'=>$request->email,
+   'password'=>bcrypt($request->password),
+   'role_id'=>$request->role_id,
+   'is_active'=>$request->is_active
+]);
 */
+if(trim($request->password) == '' ){
+   $input = $request->except('password')
+} else {
    $input = $request->all();
+   $input['password'] = bcrypt($request->password);
+}
 
-   if($file = $request->file('file')){
+if($file = $request->file('file')){
 
-      $name = Carbon::now()->format('Y-m-d') . '_' . $file->getClientOriginalName();
+   $name = Carbon::now()->format('Y-m-d') . '_' . $file->getClientOriginalName();
 
-      $file->move('images', $name);
+   $file->move('images', $name);
 
-      $photo = Photo::create(['file'=>$name]);
+   $photo = Photo::create(['file'=>$name]);
 
-      $input['photo_id'] = $photo->id;
-   }
+   $input['photo_id'] = $photo->id;
+}
 
-   User::create($input);
+User::create($input);
 
-   return redirect('/admin/users');
+return redirect('/admin/users');
 }
 
 /**
@@ -108,7 +114,10 @@ public function show($id)
 */
 public function edit($id)
 {
-   //
+   $user = User::findOrFail($id);
+   $roles = Role::lists('name', 'id')->all();
+
+   return view('admin.users.edit')->with(['user'=>$user, 'roles'=>$roles]);
 }
 
 /**
@@ -118,9 +127,31 @@ public function edit($id)
 * @param  int  $id
 * @return \Illuminate\Http\Response
 */
-public function update(Request $request, $id)
+public function update(UsersEditRequest $request, $id)
 {
-   //
+   if(trim($request->password) == '' ){
+      $input = $request->except('password')
+   } else {
+      $input = $request->all();
+      $input['password'] = bcrypt($request->password);
+   }
+   
+   $user = User::findOrFail($id);
+
+   if($file = $request->file('file')){
+
+      $name = Carbon::now()->format('Y-m-d') . '_' . $file->getClientOriginalName();
+
+      $file->move('images', $name);
+
+      $photo =  Photo::create(['file'=>$name]);
+
+      $input['photo_id'] = $photo->id;
+   }
+
+   $user->update($input);
+
+   return redirect('/admin/users');
 }
 
 /**
