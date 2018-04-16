@@ -40,15 +40,22 @@ class User extends Authenticatable
 
    public function isAdmin(){
 
-      if($this->role->id == 1){
-         return $this;
+      if($this->role){
+         if($this->role->id == 1 && $this->is_active == 1){
+            return $this;
+         }
       } else { return false; }
 
    }
 
+/*
    public function isActive(){
+      if($this->isAdmin() == false){
+         return false;
+      }
       return $this->is_active == 1;
    }
+*/
 
    public function posts(){
       return $this->hasMany('App\Post');

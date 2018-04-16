@@ -87,7 +87,11 @@ class AdminPostsController extends Controller
    */
    public function edit($id)
    {
-      //
+      $post = Post::findOrFail($id);
+
+      $categories = Category::lists('name', 'id')->all();
+
+      return view('admin.posts.edit')->with(['post'=>$post, 'categories'=>$categories]);
    }
 
    /**
@@ -97,9 +101,24 @@ class AdminPostsController extends Controller
    * @param  int  $id
    * @return \Illuminate\Http\Response
    */
-   public function update(Request $request, $id)
+   public function update(PostsCreateRequest $request, $id)
    {
-      //
+      $input = $request->all();
+
+      $post = Post::find($id);
+
+      if($file = $request->file('photo_id')){
+         $name = Carbon::now()->format('Y-m-d') . '_'. $file->getClientOriginalName();
+         $file->move('images', $name);
+         $photo = Photo::create(['file'=>$name]);
+         $input['photo_id'] = $photo->id;
+      }
+
+      $post->update($input);
+
+      $request->session()->flash('post_updated', 'Post has been successfully updated');
+
+      return redirect('/admin/posts');
    }
 
    /**
@@ -108,8 +127,18 @@ class AdminPostsController extends Controller
    * @param  int  $id
    * @return \Illuminate\Http\Response
    */
-   public function destroy($id)
+   public function destroy(Request $request, $id)
    {
-      //
+      $post = Post::findOrfail($id);
+
+      if($post->photo){
+         unlink(public_path() . '/images/' . $post->photo->file);
+      }
+
+      $post->delete();
+
+      $request->session()->flash('post_deleted', 'Post has been deleted');
+
+      return redirect('/admin/posts');
    }
 }

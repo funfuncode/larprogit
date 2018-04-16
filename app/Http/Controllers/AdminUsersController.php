@@ -168,7 +168,9 @@ public function destroy(Request $request, $id)
 {
    $user = User::findOrFail($id);
 
-   unlink(public_path() . '/images/' . $user->photo->file);
+   if($user->photo){
+      unlink(public_path() . '/images/' . $user->photo->file);
+   }
 
    $user->delete();
 
