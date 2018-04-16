@@ -73,7 +73,7 @@ public function store(UsersRequest $request)
 ]);
 */
 if(trim($request->password) == '' ){
-   $input = $request->except('password')
+   $input = $request->except('password');
 } else {
    $input = $request->all();
    $input['password'] = bcrypt($request->password);
@@ -91,6 +91,8 @@ if($file = $request->file('file')){
 }
 
 User::create($input);
+
+$request->session()->flash('user_created', 'User has been created');
 
 return redirect('/admin/users');
 }
@@ -130,12 +132,12 @@ public function edit($id)
 public function update(UsersEditRequest $request, $id)
 {
    if(trim($request->password) == '' ){
-      $input = $request->except('password')
+      $input = $request->except('password');
    } else {
       $input = $request->all();
       $input['password'] = bcrypt($request->password);
    }
-   
+
    $user = User::findOrFail($id);
 
    if($file = $request->file('file')){
@@ -151,6 +153,8 @@ public function update(UsersEditRequest $request, $id)
 
    $user->update($input);
 
+   $request->session()->flash('user_updated', 'User has been updated');
+
    return redirect('/admin/users');
 }
 
@@ -160,8 +164,16 @@ public function update(UsersEditRequest $request, $id)
 * @param  int  $id
 * @return \Illuminate\Http\Response
 */
-public function destroy($id)
+public function destroy(Request $request, $id)
 {
-   //
+   $user = User::findOrFail($id);
+
+   unlink(public_path() . '/images/' . $user->photo->file);
+
+   $user->delete();
+
+   $request->session()->flash('user_deleted', 'User has been deleted');
+
+   return redirect('admin/users');
 }
 }

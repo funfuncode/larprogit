@@ -1,6 +1,17 @@
 @extends('../layouts/admin')
 
 @section('content')
+   
+   @if(session('user_deleted'))
+      <p class="bg-warning">{{session('user_deleted')}}</p>
+   @elseif(session('user_created'))
+      <p class="bg-success">{{session('user_created')}}</p>
+   @elseif(session('user_updated'))
+      <p class="bg-success">{{session('user_updated')}}</p>
+   @endif
+
+
+
    <h1>Users</h1>
    <table class="table">
       <thead>
